@@ -1,0 +1,12 @@
+{
+  "name": "hy3d-brand",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HY3D bilingual corporate brand website",
+  "scripts": {
+    "start": "node server.mjs",
+    "sync-copy": "node scripts/sync-copy.mjs",
+    "check": "node --check docs/app.js && node --check docs/content.js && node --check server.mjs && node scripts/validate.mjs"
+  }
+}

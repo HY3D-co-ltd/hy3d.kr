@@ -1,0 +1,205 @@
+import { readFile, readdir, lstat, access } from 'node:fs/promises';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+const root = fileURLToPath(new URL('..', import.meta.url));
+const site = path.join(root, 'docs');
+const failures = [];
+let checks = 0;
+const assert = (condition, message) => {
+  checks += 1;
+  if (!condition) failures.push(message);
+};
+const label = file => path.relative(site, file).split(path.sep).join('/');
+
+async function listFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const full = path.join(directory, entry.name);
+    const info = await lstat(full);
+    assert(!info.isSymbolicLink(), `Symbolic links are not published: ${label(full)}`);
+    if (info.isSymbolicLink()) continue;
+    if (entry.isDirectory()) files.push(...await listFiles(full));
+    else files.push(full);
+  }
+  return files;
+}
+
+const decode = value => value.replace(/&(#x[\da-f]+|#\d+|amp|quot|apos|lt|gt|nbsp);/gi, (_, entity) => {
+  const names = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' ' };
+  if (entity[0] === '#') return String.fromCodePoint(parseInt(entity.slice(entity[1]?.toLowerCase() === 'x' ? 2 : 1), entity[1]?.toLowerCase() === 'x' ? 16 : 10));
+  return names[entity.toLowerCase()];
+});
+
+function attributes(source) {
+  const result = {};
+  const expression = /([\w:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+  for (const match of source.matchAll(expression)) result[match[1].toLowerCase()] = decode(match[2] ?? match[3] ?? match[4] ?? '');
+  return result;
+}
+
+function tags(html) {
+  return [...html.matchAll(/<([a-z][\w:-]*)\b((?:"[^"]*"|'[^']*'|[^'">])*)>/gi)]
+    .map(match => ({ name: match[1].toLowerCase(), attrs: attributes(match[2]), end: match.index + match[0].length }));
+}
+
+const publicAddresses = [
+  '경기도 안산시 상록구 한양대학로 55, 창업보육센터 204호',
+  '경기도 화성시 매화2길 26, 하이스퀘어 A동',
+  'Room 204, Business Incubation Center, 55 Hanyangdaehak-ro, Sangnok-gu, Ansan-si, Gyeonggi-do, South Korea',
+  'Bldg. A, Hi Square, 26 Maehwa 2-gil, Hwaseong-si, Gyeonggi-do, South Korea',
+];
+
+function checkPublicNumbers(text, location) {
+  let remaining = text;
+  for (const address of publicAddresses) remaining = remaining.replaceAll(address, ' ');
+  remaining = remaining
+    .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, ' ')
+    .replace(/\b0\d{1,2}-\d{3,4}-\d{4}\b/g, ' ')
+    .replace(/\+82\d{8,10}\b/g, ' ')
+    .replace(/HY3D|3D/gi, ' ')
+    .replace(/\b(?:19|20)\d{2}\b/g, ' ');
+  assert(!/\d/.test(remaining), `Review unapproved numeric claims in ${location}; only public contacts, addresses, years, and brand/product names are allowed.`);
+}
+
+function checkPublicSource(text, location) {
+  const forbidden = [
+    /(?:(?:^|[\s"'(])[a-z]:[\\/]|file:\/\/|\/(?:Users|home|workspace)\/)/i,
+    /(?:localhost|127\.0\.0\.1|appgprj_|\.chatgpt\.site|\.openai[\\/])/i,
+    /(?:대외비|영업이익|가동률|원가|마진율|설계 데이터|상담 데이터|operating profit|profit margin|unit cost)/i,
+  ];
+  assert(!forbidden.some(pattern => pattern.test(text)), `Private source details or internal business information found in ${location}.`);
+}
+
+async function validate() {
+  await access(path.join(site, 'index.html'));
+  const files = await listFiles(site);
+  const fileSet = new Set(files.map(file => path.resolve(file)));
+  const allowedExtensions = new Set(['.html', '.css', '.js', '.webp', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.woff', '.woff2', '.txt', '.xml', '.webmanifest']);
+  for (const file of files) {
+    const relative = label(file);
+    const basename = path.basename(file);
+    assert(allowedExtensions.has(path.extname(file).toLowerCase()) || ['.nojekyll', 'CNAME'].includes(basename), `Unexpected published file: ${relative}`);
+    assert(!relative.split('/').some(part => part.startsWith('.') && part !== '.nojekyll'), `Hidden development file in published directory: ${relative}`);
+  }
+
+  const htmlFiles = files.filter(file => path.extname(file) === '.html');
+  const documents = new Map();
+  for (const file of htmlFiles) {
+    const html = await readFile(file, 'utf8');
+    const elements = tags(html);
+    const ids = elements.filter(element => element.attrs.id).map(element => element.attrs.id);
+    assert(ids.length === new Set(ids).size, `Duplicate element IDs in ${label(file)}`);
+    documents.set(path.resolve(file), { html, elements, ids: new Set(ids) });
+  }
+
+  async function checkReference(reference, source, kind) {
+    if (!reference || /^(?:https?:|mailto:|tel:|data:)/i.test(reference)) return;
+    if (/^[a-z][a-z\d+.-]*:/i.test(reference)) {
+      assert(false, `Unsupported URL in ${label(source)} (${kind}).`);
+      return;
+    }
+    assert(!reference.startsWith('/'), `Use a relative path for GitHub Pages project hosting: ${reference} in ${label(source)}`);
+    let resource;
+    let fragment;
+    try {
+      const url = new URL(reference, pathToFileURL(source));
+      fragment = decodeURIComponent(url.hash.slice(1));
+      url.hash = '';
+      url.search = '';
+      resource = fileURLToPath(url);
+    } catch {
+      assert(false, `Invalid reference in ${label(source)} (${kind}).`);
+      return;
+    }
+    const relative = path.relative(site, resource);
+    assert(relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative), `Reference leaves published directory in ${label(source)} (${kind}).`);
+    if (resource.endsWith(path.sep)) resource = path.join(resource, 'index.html');
+    assert(fileSet.has(path.resolve(resource)), `Missing local resource ${reference} in ${label(source)}`);
+    if (fragment && documents.has(path.resolve(resource))) {
+      assert(documents.get(path.resolve(resource)).ids.has(fragment), `Missing anchor ${reference} in ${label(source)}`);
+    }
+  }
+
+  for (const [file, document] of documents) {
+    checkPublicSource(document.html, label(file));
+    const visibleText = decode(document.html
+      .replace(/<(?:script|style)\b[^>]*>[\s\S]*?<\/(?:script|style)>/gi, ' ')
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<[^>]*>/g, ' '));
+    checkPublicNumbers(visibleText, label(file));
+    for (const element of document.elements) {
+      for (const attribute of ['href', 'src', 'poster']) {
+        if (element.attrs[attribute]) await checkReference(element.attrs[attribute], file, attribute);
+      }
+      if (element.attrs.srcset) {
+        for (const candidate of element.attrs.srcset.split(',')) await checkReference(candidate.trim().split(/\s+/)[0], file, 'srcset');
+      }
+      if (element.name === 'img') assert(Object.hasOwn(element.attrs, 'alt'), `Image missing alternative text in ${label(file)}`);
+    }
+  }
+
+  for (const file of files.filter(file => /\.(?:js|css|xml|txt|webmanifest)$/.test(file))) {
+    const source = await readFile(file, 'utf8');
+    checkPublicSource(source, label(file));
+    if (file.endsWith('.js')) {
+      const syntax = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+      assert(syntax.status === 0, `JavaScript syntax error in ${label(file)}: ${syntax.stderr.trim()}`);
+      for (const match of source.matchAll(/\b(?:import|export)\s+(?:[^;"']*?\s+from\s*)?["']([^"']+)["']/g)) {
+        await checkReference(match[1], file, 'module import');
+      }
+    }
+    if (file.endsWith('.css')) {
+      for (const match of source.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)) await checkReference(match[1].trim(), file, 'CSS asset');
+    }
+  }
+
+  const { copy } = await import(pathToFileURL(path.join(site, 'content.js')).href);
+  const languages = ['ko', 'en'];
+  assert(copy && languages.every(language => copy[language] && typeof copy[language] === 'object'), 'Both Korean and English content must exist.');
+  if (!copy || languages.some(language => !copy[language])) return;
+  assert(JSON.stringify(Object.keys(copy.ko).sort()) === JSON.stringify(Object.keys(copy.en).sort()), 'Korean and English translation keys differ.');
+  for (const language of languages) {
+    for (const [key, value] of Object.entries(copy[language])) {
+      assert(typeof value === 'string' && value.trim().length > 0, `Empty or invalid translation: ${language}.${key}`);
+      if (typeof value !== 'string') continue;
+      checkPublicNumbers(value, `${language}.${key}`);
+      checkPublicSource(value, `${language}.${key}`);
+      if (language === 'en') assert(!/[가-힣]/.test(value), `Untranslated Korean in English content: ${key}`);
+    }
+  }
+
+  const home = documents.get(path.resolve(site, 'index.html'));
+  assert(home.elements.filter(element => element.name === 'h1').length === 1, 'The homepage must have exactly one primary heading.');
+  for (const element of home.elements) {
+    for (const [attribute, key] of Object.entries(element.attrs).filter(([name]) => ['data-i18n', 'data-i18n-alt', 'data-i18n-aria'].includes(name))) {
+      assert(languages.every(language => typeof copy[language][key] === 'string'), `Unknown translation key: ${key}`);
+      if (!(key in copy.ko)) continue;
+      let actual;
+      if (attribute === 'data-i18n-alt') actual = element.attrs.alt;
+      else if (attribute === 'data-i18n-aria') actual = element.attrs['aria-label'];
+      else actual = decode(home.html.slice(element.end).split('</')[0]);
+      assert(actual?.replace(/\r\n/g, '\n') === copy.ko[key], `Static Korean is out of sync at ${key}; run npm run sync-copy.`);
+    }
+  }
+  const pageTitle = decode(home.html.match(/<title>([^<]*)<\/title>/i)?.[1] ?? '');
+  assert(pageTitle === copy.ko.pageTitle, 'Static page title does not match Korean content.');
+  const description = home.elements.find(element => element.name === 'meta' && element.attrs.name === 'description')?.attrs.content;
+  assert(description === copy.ko.metaDescription, 'Static page description does not match Korean content.');
+  console.log(`Checked ${files.length} public files, ${htmlFiles.length} HTML document(s), and ${languages.length} languages.`);
+}
+
+try {
+  await validate();
+} catch (error) {
+  failures.push(`Validation could not complete: ${error.message}`);
+}
+if (failures.length) {
+  console.error(`Site validation failed (${failures.length} issues):`);
+  for (const message of failures) console.error(`- ${message}`);
+  process.exitCode = 1;
+} else {
+  console.log(`Site validation passed (${checks} checks). No build or dependency installation required.`);
+}
