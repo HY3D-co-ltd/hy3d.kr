@@ -2,7 +2,7 @@
 
 하이쓰리디의 제조·교육·AI 솔루션을 소개하는 국문·영문 정적 홈페이지입니다.
 
-홈페이지: https://hy3d-co-ltd.github.io/hy3d.kr/
+홈페이지: https://hy3d.kr/
 
 ## 로컬 실행
 
@@ -33,7 +33,7 @@ npm run check
 
 GitHub Pages의 `Deploy from a branch`를 사용합니다. 게시 브랜치는 `main`, 게시 폴더는 `/docs`입니다. `main`에 푸시하면 GitHub가 정적 사이트를 갱신합니다. 별도 서버나 배포 토큰이 필요하지 않습니다.
 
-회사 도메인을 연결할 때는 Pages 설정의 Custom domain과 도메인 DNS를 함께 설정한 뒤, `docs/index.html`의 canonical·Open Graph 주소와 `docs/sitemap.xml`을 최종 주소로 변경합니다.
+회사 도메인은 `hy3d.kr`입니다. `docs/CNAME`과 Pages 설정의 Custom domain을 동일하게 유지하고, 도메인 DNS는 GitHub Pages를 가리키도록 설정합니다. `docs/index.html`의 canonical·Open Graph 주소와 `docs/sitemap.xml`은 `https://hy3d.kr/`을 사용합니다.
 
 ## 공개 콘텐츠 관리
 
