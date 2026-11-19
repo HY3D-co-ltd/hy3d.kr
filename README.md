@@ -19,7 +19,7 @@ npm start
 - `docs/content.js`: 한국어·영어 문구
 - `docs/index.html`: 페이지 구성과 한국어 기본 문구
 - `docs/styles.css`: 반응형 스타일
-- `docs/app.js`: 언어 전환, 사업 탭, 메뉴, 이메일 복사
+- `docs/app.js`: 언어 전환, 사업 탭, 메뉴
 - `docs/assets/`: 공개용 이미지와 로고
 
 문구를 수정한 뒤 한국어 HTML을 동기화하고 검사합니다.

@@ -5,11 +5,9 @@ root.classList.replace('no-js', 'js');
 const header = document.querySelector('#site-header');
 const menu = document.querySelector('#main-nav');
 const menuToggle = document.querySelector('#menu-toggle');
-const toast = document.querySelector('#toast');
 const languageButtons = [...document.querySelectorAll('[data-lang]')];
 const tabs = [...document.querySelectorAll('[role="tab"]')];
 let language = 'ko';
-let toastTimer;
 
 function setMenu(open) {
   menu.classList.toggle('is-open', open);
@@ -36,8 +34,6 @@ function setLanguage(next, updateUrl = true) {
   }
   languageButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === language)));
   menuToggle.setAttribute('aria-label', text[menuToggle.getAttribute('aria-expanded') === 'true' ? 'menuClose' : 'menuOpen']);
-  toast.classList.remove('is-visible');
-  toast.textContent = '';
   try { localStorage.setItem('hy3d-language', language); } catch { /* The site works without storage. */ }
   if (updateUrl && /^https?:$/.test(location.protocol)) {
     const url = new URL(location.href);
@@ -77,32 +73,6 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') { setMenu(false); menuToggle.focus(); }
 });
 matchMedia('(min-width: 761px)').addEventListener('change', event => { if (event.matches) setMenu(false); });
-
-function showToast(message) {
-  clearTimeout(toastTimer);
-  toast.textContent = message;
-  toast.classList.add('is-visible');
-  toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 4500);
-}
-
-async function copyEmail(email) {
-  if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(email); return; }
-  const active = document.activeElement;
-  const field = document.createElement('textarea');
-  field.value = email;
-  field.setAttribute('readonly', '');
-  field.style.cssText = 'position:fixed;left:-9999px;top:0;';
-  document.body.append(field);
-  field.select();
-  const success = document.execCommand('copy');
-  field.remove();
-  active?.focus();
-  if (!success) throw new Error('Clipboard unavailable');
-}
-document.querySelectorAll('[data-copy-email]').forEach(button => button.addEventListener('click', async () => {
-  try { await copyEmail(button.dataset.copyEmail); showToast(copy[language].copiedEmail); }
-  catch { showToast(copy[language].copyFailed + ' ' + button.dataset.copyEmail); }
-}));
 
 function updateHeader() { header.classList.toggle('is-fixed', window.scrollY > 70); }
 window.addEventListener('scroll', updateHeader, { passive: true });
