@@ -45,22 +45,28 @@ function renderPage(slug) {
   const image = imageName(page);
   const canonical = `${origin}/business/${slug}/`;
   const asset = name => `../../assets/${escape(name.replaceAll('\\', '/').replace(/^assets\//, ''))}`;
-  const logoMarkup = (item, related = false) => {
-    const { logo, logoWidth, logoHeight } = businessPages[item].metadata;
+  const logoMarkup = () => {
+    const { logo, logoWidth, logoHeight } = page.metadata;
     if (!logo || !Number.isInteger(logoWidth) || logoWidth <= 0 || !Number.isInteger(logoHeight) || logoHeight <= 0) {
-      throw new Error(`${item}: an approved brand logo and its dimensions are required.`);
+      throw new Error(`${slug}: an approved brand logo and its dimensions are required.`);
     }
-    return `<div class="detail-logo${related ? ' detail-related-logo' : ''}" aria-hidden="true"><img src="${asset(logo)}" alt="" width="${logoWidth}" height="${logoHeight}"${related ? ' loading="lazy"' : ''}>${item === 'ai' ? '<span lang="en">Makit</span>' : ''}</div>`;
+    return `<div class="detail-logo"><img src="${asset(logo)}" alt="${t('detailBrandLabel')}" data-i18n-alt="detailBrandLabel" width="${logoWidth}" height="${logoHeight}">${slug === 'ai' ? '<span lang="en" aria-hidden="true">Makit</span>' : ''}</div>`;
   };
   const principles = [1, 2, 3].map(index => `
               <div class="detail-principle"><h3 data-i18n="detailPrinciple${index}Title">${t(`detailPrinciple${index}Title`)}</h3><p data-i18n="detailPrinciple${index}Body">${t(`detailPrinciple${index}Body`)}</p></div>`).join('');
+  const principleMarkup = slug === 'manufacturing' ? '' : `<div class="detail-principles" aria-label="${t('detailPrincipleLabel')}" data-i18n-aria="detailPrincipleLabel"><div class="detail-principle-grid">${principles}</div></div>`;
+  const serviceSymbols = [
+    '<path d="m32 5 25 14v28L32 61 7 47V19zM7 19l25 15 25-15M32 34v27"/><path d="M32 5v29L7 47m25-13 25 13" opacity=".3" stroke-dasharray="3 4"/>',
+    '<path d="m32 5 25 14-25 15L7 19z" fill="currentColor" fill-opacity=".16"/><path d="m7 19 25 15v27L7 47z" fill="currentColor" fill-opacity=".06"/><path d="m32 34 25-15v28L32 61z" fill="currentColor" fill-opacity=".3"/><path d="m32 5 25 14v28L32 61 7 47V19zM7 19l25 15 25-15M32 34v27"/>',
+    '<path d="m32 4 18 10-18 11-18-11zM14 14v15l18 11 18-11V14M32 25v15M12 29l18 10-18 11L-6 39zM-6 39v15l18 11 18-11V39M12 50v15M52 29l18 10-18 11-18-11zM34 39v15l18 11 18-11V39M52 50v15" transform="translate(6 0) scale(.82)"/>',
+  ];
+  const serviceSymbol = index => slug === 'manufacturing' ? `<svg class="detail-service-symbol" viewBox="0 0 64 68" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true">${serviceSymbols[index - 1]}</svg>` : '';
   const services = [1, 2, 3].map(index => `
-          <article class="detail-service"><h3 data-i18n="detailService${index}Title">${t(`detailService${index}Title`)}</h3><p data-i18n="detailService${index}Body">${t(`detailService${index}Body`)}</p></article>`).join('');
+          <article class="detail-service">${serviceSymbol(index)}<h3 data-i18n="detailService${index}Title">${t(`detailService${index}Title`)}</h3><p data-i18n="detailService${index}Body">${t(`detailService${index}Body`)}</p></article>`).join('');
   const related = slugs.filter(item => item !== slug).map(item => {
     const key = brandKeys[item];
     return `
           <a class="detail-related-link" href="../${item}/">
-            ${logoMarkup(item, true)}
             <div><p data-i18n="${key}Category">${t(`${key}Category`)}</p><h3 data-i18n="${key}Name">${t(`${key}Name`)}</h3></div>
           </a>`;
   }).join('');
@@ -91,32 +97,25 @@ function renderPage(slug) {
 
   <main id="main">
     <section class="detail-hero" id="home" aria-labelledby="detail-title">
-      <div class="page-width">
-        <div class="detail-identity">
-          <div class="detail-identity-brand">
-            ${logoMarkup(slug)}
-            <p data-i18n="detailBrandLabel">${t('detailBrandLabel')}</p>
-          </div>
-          <a class="detail-official-link" href="${escape(website)}" target="_blank" rel="noopener noreferrer"><span data-i18n="detailWebsiteLabel">${t('detailWebsiteLabel')}</span><span class="detail-domain">${escape(new URL(website).hostname)}</span></a>
-        </div>
+      <div class="page-width detail-hero-layout">
         <div class="detail-hero-copy">
+          ${logoMarkup()}
+          <p class="detail-category" data-i18n="detailEyebrow">${t('detailEyebrow')}</p>
           <h1 id="detail-title" data-i18n="detailTitle">${t('detailTitle')}</h1>
-          <div class="detail-hero-description"><p class="eyebrow" data-i18n="detailEyebrow">${t('detailEyebrow')}</p><p data-i18n="detailIntro">${t('detailIntro')}</p></div>
+          <p class="detail-hero-description" data-i18n="detailIntro">${t('detailIntro')}</p>
+          <a class="detail-official-link" href="${escape(website)}" target="_blank" rel="noopener noreferrer" data-i18n="detailWebsiteLabel">${t('detailWebsiteLabel')}</a>
         </div>
+        <div class="detail-concept"><img src="${asset(`concept-${slug}.svg`)}" alt="" width="720" height="640" fetchpriority="high">${text.detailConceptCaption ? `<p class="detail-concept-caption" data-i18n="detailConceptCaption">${t('detailConceptCaption')}</p>` : ''}</div>
       </div>
     </section>
 
     <section class="detail-purpose section-space" aria-labelledby="vision-title">
-      <div class="page-width">
+      <div class="page-width detail-purpose-layout${slug === 'manufacturing' ? ' detail-purpose-statement' : ''}">
         <div class="detail-vision">
           <div><p class="eyebrow light" data-i18n="detailVisionLabel">${t('detailVisionLabel')}</p><h2 id="vision-title" data-i18n="detailVisionTitle">${t('detailVisionTitle')}</h2></div>
           <p class="detail-vision-body" data-i18n="detailVisionBody">${t('detailVisionBody')}</p>
         </div>
-        <div class="detail-principles">
-          <div class="detail-principles-heading"><p class="eyebrow light" data-i18n="detailPrincipleLabel">${t('detailPrincipleLabel')}</p><h3 data-i18n="detailPrincipleTitle">${t('detailPrincipleTitle')}</h3></div>
-          <div class="detail-principle-grid">${principles}
-          </div>
-        </div>
+        ${principleMarkup}
       </div>
     </section>
 
@@ -133,7 +132,6 @@ function renderPage(slug) {
       <div class="page-width detail-contact-grid">
         <div><h2 id="contact-title" data-i18n="detailContactTitle">${t('detailContactTitle')}</h2><p class="detail-contact-body" data-i18n="detailContactBody">${t('detailContactBody')}</p></div>
         <div class="detail-contact-info">
-          <h3 data-i18n="detailBrandLabel">${t('detailBrandLabel')}</h3>
           <span class="email-address">${escape(email)}</span>
           <a class="phone-link" href="${escape(phoneHref)}">${escape(phone)}</a>
         </div>
