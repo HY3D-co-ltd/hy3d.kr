@@ -194,6 +194,31 @@ async function validate() {
       checkPublicSource(value, `${slug}.metadata.${key}`);
       if (['brand', 'email', 'phone', 'phoneHref'].includes(key)) checkPublicNumbers(value, `${slug}.metadata.${key}`);
     }
+    checkPublicSource(JSON.stringify(business.metadata), `${slug}.metadata`);
+    const checkVisual = async (visual, location) => {
+      const localImage = typeof visual?.image === 'string' && /^[\w.-]+\.(?:jpe?g|png|webp|svg)$/i.test(visual.image);
+      assert(localImage, `A local image filename is required in ${location}.`);
+      if (localImage) await checkReference(`assets/${visual.image}`, path.join(site, 'index.html'), location);
+      for (const dimension of ['width', 'height']) {
+        assert(Number.isInteger(visual?.[dimension]) && visual[dimension] > 0, `Invalid image ${dimension} in ${location}.`);
+      }
+    };
+    await checkVisual({ image: business.metadata?.image, width: business.metadata?.imageWidth, height: business.metadata?.imageHeight }, `${slug}.hero`);
+    assert(['landscape', 'screens'].includes(business.metadata?.galleryLayout), `Unsupported gallery layout in ${slug}.`);
+    for (const group of ['gallery', 'workflow']) {
+      const visuals = business.metadata?.[group];
+      assert(Array.isArray(visuals), `Missing visual collection: ${slug}.${group}`);
+      if (!Array.isArray(visuals)) continue;
+      if (group === 'gallery') assert(visuals.length > 0, `At least one gallery image is required in ${slug}.`);
+      for (const [index, visual] of visuals.entries()) {
+        const location = `${slug}.${group}[${index}]`;
+        await checkVisual(visual, location);
+        for (const field of ['titleKey', 'captionKey', 'altKey']) {
+          const key = visual?.[field];
+          assert(typeof key === 'string' && languages.every(language => typeof business.copy[language][key] === 'string' && business.copy[language][key].trim()), `Missing translated ${field} in ${location}.`);
+        }
+      }
+    }
     pageCopies.set(file, Object.fromEntries(languages.map(language => [language, { ...copy[language], ...business.copy[language] }])));
   }
 

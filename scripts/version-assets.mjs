@@ -14,6 +14,9 @@ const hash = source => createHash('sha256').update(normalize(source)).digest('he
 for (const name of ['content.js', 'business-content.js', 'styles.css', 'business.css']) {
   versions.set(name, hash(await readFile(path.join(docs, name), 'utf8')));
 }
+for (const name of ['favicon.ico', 'favicon.png']) {
+  versions.set(name, createHash('sha256').update(await readFile(path.join(docs, 'assets', name))).digest('hex').slice(0, 12));
+}
 
 function versioned(reference) {
   const [withQuery, fragment] = reference.split('#', 2);

@@ -26,7 +26,7 @@ function sharedMarkup(tag, slug) {
 }
 
 function imageName(page) {
-  return page.metadata.image.split(/[\\/]/).at(-1);
+  return page.metadata.image.replaceAll('\\', '/').replace(/^assets\//, '');
 }
 
 function renderPage(slug) {
@@ -41,26 +41,39 @@ function renderPage(slug) {
     if (typeof text[key] !== 'string') throw new Error(`${slug}: missing copy key ${key}`);
     return escape(text[key]);
   };
-  const { website, email, phone, phoneHref } = page.metadata;
+  const { website, email, phone, phoneHref, gallery = [], workflow = [], galleryLayout = 'landscape' } = page.metadata;
+  if (!gallery.length) throw new Error(`${slug}: approved gallery images are required.`);
   const brandKey = brandKeys[slug];
   const brand = `${brandKey}Name`;
   const image = imageName(page);
   const canonical = `${origin}/business/${slug}/`;
-  const services = [1, 2, 3].map(index => `
-          <article class="detail-service">
-            <h3 data-i18n="detailService${index}Title">${t(`detailService${index}Title`)}</h3>
-            <p data-i18n="detailService${index}Body">${t(`detailService${index}Body`)}</p>
-          </article>`).join('');
-  const process = [1, 2, 3].map(index => `
-          <li>
-            <h3 data-i18n="detailProcess${index}Title">${t(`detailProcess${index}Title`)}</h3>
-            <p data-i18n="detailProcess${index}Body">${t(`detailProcess${index}Body`)}</p>
-          </li>`).join('');
+  const asset = name => `../../assets/${escape(name.replaceAll('\\', '/').replace(/^assets\//, ''))}`;
+  const mediaCard = (media, screen = false) => `
+          <figure class="detail-media-card${screen ? ' detail-screen-card' : ''}">
+            <div class="detail-media-frame"><img src="${asset(media.image)}" alt="${t(media.altKey)}" data-i18n-alt="${escape(media.altKey)}" width="${media.width}" height="${media.height}" loading="lazy" decoding="async"></div>
+            <figcaption><h3 data-i18n="${escape(media.titleKey)}">${t(media.titleKey)}</h3><p data-i18n="${escape(media.captionKey)}">${t(media.captionKey)}</p></figcaption>
+          </figure>`;
+  const capabilities = [1, 2, 3].map(index => `<li data-i18n="detailService${index}Title">${t(`detailService${index}Title`)}</li>`).join('');
+  const screenGallery = galleryLayout === 'screens';
+  const galleryMarkup = gallery.map(media => mediaCard(media, screenGallery)).join('');
+  const galleryHint = screenGallery && text.detailGalleryHint ? `<p class="detail-gallery-hint" data-i18n="detailGalleryHint">${t('detailGalleryHint')}</p>` : '';
+  const heroVisual = screenGallery
+    ? `<div class="detail-product-preview">${gallery.slice(0, 2).map((media, index) => `<div class="detail-product-screen"><img src="${asset(media.image)}" alt="${t(media.altKey)}" data-i18n-alt="${escape(media.altKey)}" width="${media.width}" height="${media.height}" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}></div>`).join('')}</div>`
+    : `<div class="detail-hero-media"><img src="../../assets/${escape(image)}" alt="${t('detailHeroAlt')}" data-i18n-alt="detailHeroAlt" width="${page.metadata.imageWidth || 1600}" height="${page.metadata.imageHeight || 900}" fetchpriority="high"></div>`;
+  const workflowMarkup = workflow.length ? `
+    <section class="detail-visual-workflow section-space" aria-labelledby="process-title">
+      <div class="page-width">
+        <div class="detail-section-heading"><h2 id="process-title" data-i18n="detailProcessTitle">${t('detailProcessTitle')}</h2><p data-i18n="detailProcessIntro">${t('detailProcessIntro')}</p></div>
+        <div class="detail-workflow-grid detail-workflow-grid-${Math.min(workflow.length, 4)}">${workflow.map(media => mediaCard(media)).join('')}
+        </div>
+      </div>
+    </section>` : '';
   const related = slugs.filter(item => item !== slug).map(item => {
     const key = brandKeys[item];
+    const relatedImage = businessPages[item].metadata;
     return `
           <a class="detail-related-link" href="../${item}/">
-            <img src="../../assets/${escape(imageName(businessPages[item]))}" alt="" width="1600" height="900" loading="lazy">
+            <img src="../../assets/${escape(imageName(businessPages[item]))}" alt="" width="${relatedImage.imageWidth || 1600}" height="${relatedImage.imageHeight || 900}" loading="lazy">
             <div><p data-i18n="${key}Category">${t(`${key}Category`)}</p><h3 data-i18n="${key}Name">${t(`${key}Name`)}</h3></div>
           </a>`;
   }).join('');
@@ -91,43 +104,28 @@ function renderPage(slug) {
   ${sharedMarkup('header', slug)}
 
   <main id="main">
-    <section class="detail-hero" id="home" aria-labelledby="detail-title">
-      <img class="detail-hero-image" src="../../assets/${escape(image)}" alt="${t(`${brandKey}Alt`)}" data-i18n-alt="${brandKey}Alt" width="1600" height="900" fetchpriority="high">
-      <div class="detail-hero-shade"></div>
+    <section class="detail-hero${screenGallery ? ' detail-hero-product' : ''}" id="home" aria-labelledby="detail-title">
       <div class="detail-hero-content page-width">
         <p class="eyebrow light" data-i18n="detailEyebrow">${t('detailEyebrow')}</p>
         <h1 id="detail-title" data-i18n="detailTitle">${t('detailTitle')}</h1>
         <p class="detail-hero-intro" data-i18n="detailIntro">${t('detailIntro')}</p>
-        <a class="button button-light" href="#services" data-i18n="detailServicesTitle">${t('detailServicesTitle')}</a>
+        <a class="button button-light" href="#services" data-i18n="detailGalleryTitle">${t('detailGalleryTitle')}</a>
       </div>
+      ${heroVisual}
       <div class="detail-brand-line page-width"><span data-i18n="${brand}">${t(brand)}</span><span lang="en">ANYONE CAN MAKE IT.</span></div>
     </section>
 
-    <section class="detail-overview section-space page-width" aria-labelledby="overview-title">
-      <h2 id="overview-title" data-i18n="detailOverviewTitle">${t('detailOverviewTitle')}</h2>
-      <p data-i18n="detailOverviewBody">${t('detailOverviewBody')}</p>
-    </section>
-
-    <section class="detail-services section-space" id="services" aria-labelledby="services-title">
+    <section class="detail-gallery section-space" id="services" aria-labelledby="gallery-title">
       <div class="page-width">
-        <h2 id="services-title" data-i18n="detailServicesTitle">${t('detailServicesTitle')}</h2>
-        <div class="detail-service-grid">${services}
+        <div class="detail-section-heading"><h2 id="gallery-title" data-i18n="detailGalleryTitle">${t('detailGalleryTitle')}</h2><p data-i18n="detailGalleryIntro">${t('detailGalleryIntro')}</p></div>
+        <ul class="detail-capabilities" aria-label="${t('detailServicesTitle')}" data-i18n-aria="detailServicesTitle">${capabilities}</ul>
+        ${galleryHint}
+        <div class="${screenGallery ? 'detail-gallery-screens' : `detail-gallery-grid detail-gallery-grid-${Math.min(gallery.length, 3)}`}"${screenGallery ? ` role="region" tabindex="0" aria-label="${t('detailGalleryTitle')}" data-i18n-aria="detailGalleryTitle"` : ''}>${galleryMarkup}
         </div>
       </div>
     </section>
 
-    <section class="detail-process section-space" aria-labelledby="process-title">
-      <div class="page-width">
-        <h2 id="process-title" data-i18n="detailProcessTitle">${t('detailProcessTitle')}</h2>
-        <ol class="detail-process-list">${process}
-        </ol>
-      </div>
-    </section>
-
-    <section class="detail-audience section-space page-width" aria-labelledby="audience-title">
-      <h2 id="audience-title" data-i18n="detailAudienceTitle">${t('detailAudienceTitle')}</h2>
-      <p data-i18n="detailAudienceBody">${t('detailAudienceBody')}</p>
-    </section>
+    ${workflowMarkup}
 
     <section class="detail-contact section-space" id="contact" aria-labelledby="contact-title">
       <div class="page-width detail-contact-grid">
@@ -157,7 +155,7 @@ function renderPage(slug) {
 for (const slug of slugs) {
   const directory = new URL(`../docs/business/${slug}/`, import.meta.url);
   await mkdir(directory, { recursive: true });
-  await writeFile(new URL('index.html', directory), renderPage(slug), 'utf8');
+  await writeFile(new URL('index.html', directory), renderPage(slug).replace(/[\t ]+$/gm, ''), 'utf8');
 }
 
 const urls = [`${origin}/`, ...slugs.map(slug => `${origin}/business/${slug}/`)];
