@@ -1,5 +1,5 @@
-import { copy as baseCopy } from './content.js';
-import { businessPages } from './business-content.js';
+import { copy as baseCopy } from './content.js?v=2ec14f356048';
+import { businessPages } from './business-content.js?v=da856bf5436e';
 
 const pageCopy = businessPages[document.body.dataset.business]?.copy;
 const copy = {

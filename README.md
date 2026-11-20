@@ -25,7 +25,7 @@ npm start
 - `docs/app.js`: 언어 전환, 사업 탭, 사업 분야 드롭다운과 모바일 메뉴
 - `docs/assets/`: 공개용 이미지와 로고
 
-문구를 수정한 뒤 한국어 HTML을 동기화하고 검사합니다. `npm run sync-copy`는 홈페이지 문구를 맞춘 다음 사업 상세페이지와 사이트맵을 다시 생성합니다. `docs/business/`의 생성된 HTML을 직접 수정하지 말고, 문구는 `docs/business-content.js`에서, 상세페이지 구성은 `scripts/build-business-pages.mjs`에서 수정합니다.
+문구나 스크립트·스타일을 수정한 뒤 HTML과 파일 버전을 동기화하고 검사합니다. `npm run sync-copy`는 홈페이지 문구를 맞춘 다음 사업 상세페이지와 사이트맵을 다시 생성하고, 콘텐츠·스크립트·CSS 참조에 내용 해시를 붙입니다. 기존 방문자도 변경된 파일을 새로 내려받도록 하며, `npm run check`는 버전이 최신인지 확인합니다. `docs/business/`의 생성된 HTML을 직접 수정하지 말고, 문구는 `docs/business-content.js`에서, 상세페이지 구성은 `scripts/build-business-pages.mjs`에서 수정합니다.
 
 ```sh
 npm run sync-copy
