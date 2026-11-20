@@ -1,7 +1,7 @@
 export const copy = {
   ko: {
-    pageTitle: 'HY3D 하이쓰리디 — Anyone can make it.',
-    metaDescription: '만드는 사람을 위한 메이커 플랫폼, 하이쓰리디. 한양3D팩토리의 제조, 한양미래연구소의 교육, 메이킷의 AI 솔루션으로 아이디어의 가능성을 연결합니다.',
+    pageTitle: 'HY3D 하이쓰리디 | 제조·교육·AI 솔루션',
+    metaDescription: '하이쓰리디는 만드는 사람을 위한 메이커 플랫폼입니다. 한양3D팩토리의 제품 설계·제조, 한양미래연구소의 AI·메이커 교육, 메이킷의 AI 홍보 콘텐츠를 소개합니다.',
     skipLink: '본문으로 바로가기',
     navAbout: '하이쓰리디',
     navBusinesses: '사업 분야',
@@ -19,7 +19,7 @@ export const copy = {
     scrollLabel: 'SCROLL TO EXPLORE',
     aboutEyebrow: 'ABOUT HY3D',
     aboutTitle: '누구나 만들 수 있는 세상.\n그 가능성을 연결합니다.',
-    aboutBody: '새로운 제품을 구상하는 기업, 미래를 탐색하는 학생, 자신의 일을 알리고 싶은 사장님. 하이쓰리디는 무언가를 만드는 사람의 곁에 있습니다.',
+    aboutBody: '하이쓰리디는 제조·교육·AI 솔루션을 연결하는 메이커 플랫폼입니다. 제품을 구상하는 기업, 미래를 탐색하는 학생, 자신의 일을 알리는 사장님과 함께합니다.',
     aboutClosing: '제조와 교육, AI를 연결해\n생각이 시작되고, 자라고, 세상에 닿는 일을 돕습니다.',
     businessEyebrow: 'OUR BUSINESSES',
     businessTitle: '만들고. 배우고. 알리고.',
@@ -77,8 +77,8 @@ export const copy = {
     tabListLabel: '사업 분야 선택'
   },
   en: {
-    pageTitle: 'HY3D — Anyone can make it.',
-    metaDescription: 'HY3D is a platform for people who make. Discover manufacturing with Hanyang 3D Factory, education with Hanyang Future Lab, and AI solutions with Makit.',
+    pageTitle: 'HY3D | Manufacturing, Education & AI Solutions',
+    metaDescription: 'Explore product manufacturing with Hanyang 3D Factory, maker education with Hanyang Future Lab and AI marketing with Makit. HY3D is a platform for makers.',
     skipLink: 'Skip to content',
     navAbout: 'About HY3D',
     navBusinesses: 'Our businesses',
@@ -96,7 +96,7 @@ export const copy = {
     scrollLabel: 'SCROLL TO EXPLORE',
     aboutEyebrow: 'ABOUT HY3D',
     aboutTitle: 'A world where anyone can make.\nWe connect the possibilities.',
-    aboutBody: 'A company imagining a new product. A student exploring the future. A business owner with a story to share. HY3D is here for people who make.',
+    aboutBody: 'HY3D is a maker platform connecting manufacturing, education and AI solutions. We support companies developing products, students exploring technology and owners sharing their work.',
     aboutClosing: 'Through manufacturing, education and AI,\nwe help ideas take shape, grow and reach the world.',
     businessEyebrow: 'OUR BUSINESSES',
     businessTitle: 'Make. Learn. Share.',

@@ -14,8 +14,8 @@ export const businessPages = {
     },
     "copy": {
       "ko": {
-        "pageTitle": "제조 · 한양3D팩토리 | HY3D 하이쓰리디",
-        "metaDescription": "한양3D팩토리는 아이디어를 제품으로 만드는 설계·제조 파트너입니다. 제품 설계, 시제품 제작, 소량 생산과 양산을 연결해 고객이 제품 개발과 사업화에 집중하도록 돕습니다.",
+        "pageTitle": "한양3D팩토리 | 설계·시제품·양산 | HY3D",
+        "metaDescription": "한양3D팩토리는 기업과 연구팀의 제품 설계, 3D프린팅·CNC 시제품 제작, 소량 생산과 양산을 돕습니다. 용도와 수량에 맞는 공법을 검토하고 후가공·조립까지 연결합니다.",
         "detailEyebrow": "제조",
         "detailTitle": "설계부터 양산까지,\n한 팀이 함께합니다.",
         "detailIntro": "제품을 개발하는 기업과 연구팀의 제작 파트너입니다. 용도와 수량에 맞는 제조 방법을 검토하고, 실물 검증부터 출시 준비까지 필요한 기술과 공정을 연결합니다.",
@@ -47,8 +47,8 @@ export const businessPages = {
         "detailProofTitle": "함께 쌓아온 경험"
       },
       "en": {
-        "pageTitle": "Manufacturing · Hanyang 3D Factory | HY3D",
-        "metaDescription": "Hanyang 3D Factory is a design and manufacturing partner that connects product design, prototyping and production, helping customers focus on bringing their ideas to market.",
+        "pageTitle": "Hanyang 3D Factory | Prototyping & Production | HY3D",
+        "metaDescription": "Hanyang 3D Factory supports product design, 3D printing, CNC prototypes and production for companies and research teams, with processes matched to purpose and quantity.",
         "detailEyebrow": "MANUFACTURING",
         "detailTitle": "From design to production,\none team by your side.",
         "detailIntro": "A manufacturing partner for companies and research teams developing products. We help choose methods suited to each product’s purpose and quantity, connecting the work needed from physical testing to launch preparation.",
@@ -96,8 +96,8 @@ export const businessPages = {
     },
     "copy": {
       "ko": {
-        "pageTitle": "교육 · 한양미래연구소 | HY3D 하이쓰리디",
-        "metaDescription": "한양미래연구소는 아이들의 평생 꿈을 보육하는 체험교육 브랜드입니다. 경험·꿈·자기주도의 가치를 바탕으로 찾아가는 AI·메이커 교육, 캠프, 특강과 체험 부스를 운영합니다.",
+        "pageTitle": "한양미래연구소 | AI·메이커 체험교육 | HY3D",
+        "metaDescription": "한양미래연구소는 학교와 교육기관을 위한 AI·코딩·메이커 체험교육을 운영합니다. 찾아가는 체험교실, 대학 캠프, 특강·동아리와 행사 부스를 통해 직접 만들며 배우는 경험을 제공합니다.",
         "detailEyebrow": "교육",
         "detailConceptCaption": "경험이 꿈으로, 꿈이 스스로의 힘으로.",
         "detailTitle": "아이들의 평생 꿈을\n보육합니다.",
@@ -130,8 +130,8 @@ export const businessPages = {
         "detailProofTitle": "함께 쌓아온 경험"
       },
       "en": {
-        "pageTitle": "Education · Hanyang Future Lab | HY3D",
-        "metaDescription": "Hanyang Future Lab nurtures children’s lifelong dreams through experience, aspiration and independent learning. Explore AI and maker classes, camps, lectures and event programs.",
+        "pageTitle": "Hanyang Future Lab | AI & Maker Education | HY3D",
+        "metaDescription": "Hanyang Future Lab brings AI, coding and maker education to schools through practical classes, campus camps, lectures, clubs and activities at events.",
         "detailEyebrow": "EDUCATION",
         "detailConceptCaption": "Experience. Dreams. The confidence to learn.",
         "detailTitle": "Nurturing children’s dreams\nfor a lifetime.",
@@ -180,8 +180,8 @@ export const businessPages = {
     },
     "copy": {
       "ko": {
-        "pageTitle": "AI 솔루션 · 메이킷 Makit | HY3D 하이쓰리디",
-        "metaDescription": "메이킷은 사장님이 만드는 일에 집중하도록 돕는 AI 마케팅 파트너입니다. 사진과 이야기를 숏폼 영상과 홍보 문구로 풀어내고, 자신의 일과 브랜드를 알리는 부담을 덜어줍니다.",
+        "pageTitle": "메이킷 Makit | AI 영상·홍보 콘텐츠 제작 | HY3D",
+        "metaDescription": "메이킷은 매장과 공방을 위한 AI 마케팅 솔루션입니다. 상품·작업 사진과 메시지를 바탕으로 숏폼 영상, 블로그 글, 홍보 문구와 영상 스크립트를 만드는 일을 돕습니다.",
         "detailEyebrow": "AI 솔루션",
         "detailTitle": "사장님의 사진이\n브랜드의 콘텐츠가 됩니다.",
         "detailIntro": "홍보 담당자가 없는 매장과 공방을 위한 AI 마케팅 솔루션입니다. 숏폼 영상과 홍보 글의 제작 부담을 덜어, 사장님이 본업에 집중할 수 있도록 돕습니다.",
@@ -213,8 +213,8 @@ export const businessPages = {
         "detailProofTitle": "함께 쌓아온 경험"
       },
       "en": {
-        "pageTitle": "AI Solutions · Makit | HY3D",
-        "metaDescription": "Makit is an AI marketing partner that helps business owners focus on their work. It turns photos and stories into short videos and promotional copy, making it easier to share a brand.",
+        "pageTitle": "Makit | AI Video & Marketing Content | HY3D",
+        "metaDescription": "Makit helps shop owners and makers turn product photos and messages into short promotional videos, blog posts, marketing copy and video scripts using AI.",
         "detailEyebrow": "AI SOLUTIONS",
         "detailTitle": "Your photos become\ncontent for your brand.",
         "detailIntro": "An AI marketing solution for shop owners and makers without a dedicated marketer. It eases the work of producing short videos and promotional copy, helping owners focus on running their business.",

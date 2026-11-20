@@ -1,5 +1,5 @@
-import { copy as baseCopy } from './content.js?v=2ec14f356048';
-import { businessPages } from './business-content.js?v=7a492905e715';
+import { copy as baseCopy } from './content.js?v=8dd5edcbf5c0';
+import { businessPages } from './business-content.js?v=b25320feb129';
 
 const pageCopy = businessPages[document.body.dataset.business]?.copy;
 const copy = {
@@ -15,10 +15,37 @@ const businessNavigation = document.querySelector('.nav-businesses');
 const businessToggle = document.querySelector('#business-menu-toggle');
 const businessSubmenu = document.querySelector('#business-submenu');
 const businessLinks = [...businessSubmenu.querySelectorAll('a')];
-const languageButtons = [...document.querySelectorAll('[data-lang]')];
+const languageLinks = [...document.querySelectorAll('a[data-lang]')];
 const tabs = [...document.querySelectorAll('[role="tab"]')];
-const navigationLinks = [...document.querySelectorAll('a[href]')].map(link => ({ link, originalHref: link.getAttribute('href') }));
-let language = 'ko';
+const language = /^\/en(?:\/|$)/.test(location.pathname) || root.lang === 'en' ? 'en' : 'ko';
+
+function localizedPath(pathname, nextLanguage) {
+  const pagePath = (pathname.replace(/^\/en(?=\/|$)/, '') || '/').replace(/\/index\.html$/, '/');
+  return nextLanguage === 'en' ? '/en' + pagePath : pagePath;
+}
+
+function redirectLegacyLanguage() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  const url = new URL(location.href);
+  const requestedLanguage = url.searchParams.get('lang');
+  if (requestedLanguage !== 'ko' && requestedLanguage !== 'en') return;
+  url.pathname = localizedPath(url.pathname, requestedLanguage);
+  url.searchParams.delete('lang');
+  location.replace(url.pathname + url.search + url.hash);
+}
+
+function updateLanguageLinks() {
+  for (const link of languageLinks) {
+    if (link.dataset.lang === language) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+    if (!/^https?:$/.test(location.protocol)) continue;
+    const target = new URL(link.getAttribute('href'), location.href);
+    target.search = location.search;
+    target.searchParams.delete('lang');
+    target.hash = location.hash;
+    link.setAttribute('href', target.pathname + target.search + target.hash);
+  }
+}
 
 function setBusinessMenu(open, focusIndex) {
   businessSubmenu.hidden = !open;
@@ -33,54 +60,6 @@ function setMenu(open) {
   menuToggle.setAttribute('aria-expanded', String(open));
   menuToggle.setAttribute('aria-label', copy[language][open ? 'menuClose' : 'menuOpen']);
   if (!open) setBusinessMenu(false);
-}
-
-function updateInternalLinks() {
-  if (!/^https?:$/.test(location.protocol)) return;
-  for (const { link, originalHref } of navigationLinks) {
-    const target = new URL(originalHref, location.href);
-    if (target.origin !== location.origin || !/^https?:$/.test(target.protocol)) continue;
-    if (language === 'en') target.searchParams.set('lang', 'en');
-    else target.searchParams.delete('lang');
-    if (originalHref.startsWith('#')) link.setAttribute('href', originalHref);
-    else link.setAttribute('href', target.pathname + target.search + target.hash);
-  }
-}
-
-function setLanguage(next, updateUrl = true) {
-  language = next === 'en' ? 'en' : 'ko';
-  const text = copy[language];
-  root.lang = language;
-  document.title = text.pageTitle;
-  for (const [selector, value] of [
-    ['meta[name="description"]', text.metaDescription],
-    ['meta[property="og:title"]', text.pageTitle],
-    ['meta[property="og:description"]', text.metaDescription],
-    ['meta[property="og:locale"]', language === 'en' ? 'en_US' : 'ko_KR'],
-  ]) {
-    const meta = document.querySelector(selector);
-    if (meta) meta.content = value;
-  }
-  for (const node of document.querySelectorAll('[data-i18n]')) {
-    if (text[node.dataset.i18n] !== undefined) node.textContent = text[node.dataset.i18n];
-  }
-  for (const node of document.querySelectorAll('[data-i18n-alt]')) {
-    if (text[node.dataset.i18nAlt] !== undefined) node.alt = text[node.dataset.i18nAlt];
-  }
-  for (const node of document.querySelectorAll('[data-i18n-aria]')) {
-    if (text[node.dataset.i18nAria] !== undefined) node.setAttribute('aria-label', text[node.dataset.i18nAria]);
-  }
-  languageButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.lang === language)));
-  menuToggle.setAttribute('aria-label', text[menuToggle.getAttribute('aria-expanded') === 'true' ? 'menuClose' : 'menuOpen']);
-  businessToggle.setAttribute('aria-label', text[businessToggle.getAttribute('aria-expanded') === 'true' ? 'businessMenuClose' : 'businessMenuOpen']);
-  try { localStorage.setItem('hy3d-language', language); } catch { /* The site works without storage. */ }
-  if (updateUrl && /^https?:$/.test(location.protocol)) {
-    const url = new URL(location.href);
-    if (language === 'en') url.searchParams.set('lang', 'en');
-    else url.searchParams.delete('lang');
-    history.replaceState(null, '', url);
-  }
-  updateInternalLinks();
 }
 
 function activateBusiness(tab, focus = false) {
@@ -127,7 +106,6 @@ businessNavigation.addEventListener('focusout', event => {
   if (!businessNavigation.contains(event.relatedTarget)) setBusinessMenu(false);
 });
 
-languageButtons.forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.lang)));
 menuToggle.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
 menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setMenu(false)));
 document.addEventListener('click', event => {
@@ -150,9 +128,11 @@ matchMedia('(min-width: 761px)').addEventListener('change', () => setMenu(false)
 
 function updateHeader() { header.classList.toggle('is-fixed', window.scrollY > 70); }
 window.addEventListener('scroll', updateHeader, { passive: true });
-window.addEventListener('popstate', () => setLanguage(new URLSearchParams(location.search).get('lang') || 'ko', false));
-let preferred = 'ko';
-try { preferred = localStorage.getItem('hy3d-language') || 'ko'; } catch { /* Default to Korean. */ }
-setLanguage(new URLSearchParams(location.search).get('lang') || preferred);
+window.addEventListener('hashchange', updateLanguageLinks);
+window.addEventListener('popstate', updateLanguageLinks);
+redirectLegacyLanguage();
+updateLanguageLinks();
+menuToggle.setAttribute('aria-label', copy[language].menuOpen);
+businessToggle.setAttribute('aria-label', copy[language].businessMenuOpen);
 document.querySelector('#year').textContent = new Date().getFullYear();
 updateHeader();

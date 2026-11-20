@@ -1,9 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { businessPages } from '../docs/business-content.js';
 import { copy } from '../docs/content.js';
 
-const docs = fileURLToPath(new URL('../docs/', import.meta.url));
 const home = await readFile(new URL('../docs/index.html', import.meta.url), 'utf8');
 const origin = 'https://hy3d.kr';
 const slugs = ['manufacturing', 'education', 'ai'];
@@ -18,10 +16,11 @@ function sharedMarkup(tag, slug) {
   if (!found) throw new Error(`Homepage is missing its shared ${tag}.`);
   let markup = found[0].replace(/\b(href|src)="([^"]+)"/g, (whole, attribute, value) => {
     if (/^(?:https?:|tel:|mailto:|\/\/)/.test(value)) return whole;
-    return `${attribute}="../../${value}"`;
+    const target = new URL(value, `${origin}/`);
+    return `${attribute}="${target.pathname}${target.search}${target.hash}"`;
   });
-  markup = markup.replace(`href="../../business/${slug}/"`, `href="../../business/${slug}/" aria-current="page"`);
-  if (tag === 'footer') markup = markup.replace('class="back-top" href="../../#home"', 'class="back-top" href="#home"');
+  markup = markup.replace(`href="/business/${slug}/"`, `href="/business/${slug}/" aria-current="page"`);
+  if (tag === 'footer') markup = markup.replace('class="back-top" href="/#home"', 'class="back-top" href="#home"');
   return markup;
 }
 
@@ -157,6 +156,4 @@ for (const slug of slugs) {
   await writeFile(new URL('index.html', directory), renderPage(slug).replace(/[\t ]+$/gm, ''), 'utf8');
 }
 
-const urls = [`${origin}/`, ...slugs.map(slug => `${origin}/business/${slug}/`)];
-await writeFile(`${docs}sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>\n`, 'utf8');
-console.log(`Generated ${slugs.length} business pages and sitemap.xml.`);
+console.log(`Generated ${slugs.length} Korean business pages.`);

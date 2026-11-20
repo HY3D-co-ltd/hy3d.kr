@@ -6,7 +6,7 @@
   "description": "HY3D bilingual corporate brand website",
   "scripts": {
     "start": "node server.mjs",
-    "sync-copy": "node scripts/sync-copy.mjs && node scripts/build-business-pages.mjs && node scripts/version-assets.mjs",
+    "sync-copy": "node scripts/sync-copy.mjs && node scripts/build-business-pages.mjs && node scripts/build-seo.mjs && node scripts/version-assets.mjs",
     "check": "node --check docs/app.js && node --check docs/content.js && node --check server.mjs && node scripts/version-assets.mjs --check && node scripts/validate.mjs"
   }
 }
