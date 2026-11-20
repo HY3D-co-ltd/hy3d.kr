@@ -5,6 +5,8 @@ import { spawnSync } from 'node:child_process';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const site = path.join(root, 'docs');
+const languages = ['ko', 'en'];
+const businessSlugs = ['manufacturing', 'education', 'ai'];
 const failures = [];
 let checks = 0;
 const assert = (condition, message) => {
@@ -71,6 +73,24 @@ function checkPublicSource(text, location) {
     /(?:대외비|영업이익|가동률|원가|마진율|설계 데이터|상담 데이터|operating profit|profit margin|unit cost)/i,
   ];
   assert(!forbidden.some(pattern => pattern.test(text)), `Private source details or internal business information found in ${location}.`);
+}
+
+function checkTranslations(copy, location) {
+  const complete = copy && languages.every(language => copy[language] && typeof copy[language] === 'object');
+  assert(complete, `Both Korean and English content must exist in ${location}.`);
+  if (!complete) return false;
+  assert(JSON.stringify(Object.keys(copy.ko).sort()) === JSON.stringify(Object.keys(copy.en).sort()), `Korean and English translation keys differ in ${location}.`);
+  for (const language of languages) {
+    for (const [key, value] of Object.entries(copy[language])) {
+      const entry = `${location}.${language}.${key}`;
+      assert(typeof value === 'string' && value.trim().length > 0, `Empty or invalid translation: ${entry}`);
+      if (typeof value !== 'string') continue;
+      checkPublicNumbers(value, entry);
+      checkPublicSource(value, entry);
+      if (language === 'en') assert(!/[가-힣]/.test(value), `Untranslated Korean in English content: ${entry}`);
+    }
+  }
+  return true;
 }
 
 async function validate() {
@@ -157,37 +177,47 @@ async function validate() {
   }
 
   const { copy } = await import(pathToFileURL(path.join(site, 'content.js')).href);
-  const languages = ['ko', 'en'];
-  assert(copy && languages.every(language => copy[language] && typeof copy[language] === 'object'), 'Both Korean and English content must exist.');
-  if (!copy || languages.some(language => !copy[language])) return;
-  assert(JSON.stringify(Object.keys(copy.ko).sort()) === JSON.stringify(Object.keys(copy.en).sort()), 'Korean and English translation keys differ.');
-  for (const language of languages) {
-    for (const [key, value] of Object.entries(copy[language])) {
-      assert(typeof value === 'string' && value.trim().length > 0, `Empty or invalid translation: ${language}.${key}`);
+  const { businessPages } = await import(pathToFileURL(path.join(site, 'business-content.js')).href);
+  if (!checkTranslations(copy, 'shared')) return;
+  const pageCopies = new Map([[path.resolve(site, 'index.html'), copy]]);
+  for (const slug of businessSlugs) {
+    const business = businessPages?.[slug];
+    const file = path.resolve(site, 'business', slug, 'index.html');
+    const document = documents.get(file);
+    assert(Boolean(document), `Missing business page: business/${slug}/index.html; run npm run sync-copy.`);
+    if (document) assert(document.elements.find(element => element.name === 'body')?.attrs['data-business'] === slug, `Business page identity does not match ${slug}.`);
+    if (!checkTranslations(business?.copy, slug)) continue;
+    for (const key of ['brand', 'image', 'website', 'email', 'phone', 'phoneHref']) {
+      const value = business.metadata?.[key];
+      assert(typeof value === 'string' && value.trim().length > 0, `Missing business metadata: ${slug}.${key}`);
       if (typeof value !== 'string') continue;
-      checkPublicNumbers(value, `${language}.${key}`);
-      checkPublicSource(value, `${language}.${key}`);
-      if (language === 'en') assert(!/[가-힣]/.test(value), `Untranslated Korean in English content: ${key}`);
+      checkPublicSource(value, `${slug}.metadata.${key}`);
+      if (['brand', 'email', 'phone', 'phoneHref'].includes(key)) checkPublicNumbers(value, `${slug}.metadata.${key}`);
     }
+    pageCopies.set(file, Object.fromEntries(languages.map(language => [language, { ...copy[language], ...business.copy[language] }])));
   }
 
-  const home = documents.get(path.resolve(site, 'index.html'));
-  assert(home.elements.filter(element => element.name === 'h1').length === 1, 'The homepage must have exactly one primary heading.');
-  for (const element of home.elements) {
-    for (const [attribute, key] of Object.entries(element.attrs).filter(([name]) => ['data-i18n', 'data-i18n-alt', 'data-i18n-aria'].includes(name))) {
-      assert(languages.every(language => typeof copy[language][key] === 'string'), `Unknown translation key: ${key}`);
-      if (!(key in copy.ko)) continue;
-      let actual;
-      if (attribute === 'data-i18n-alt') actual = element.attrs.alt;
-      else if (attribute === 'data-i18n-aria') actual = element.attrs['aria-label'];
-      else actual = decode(home.html.slice(element.end).split('</')[0]);
-      assert(actual?.replace(/\r\n/g, '\n') === copy.ko[key], `Static Korean is out of sync at ${key}; run npm run sync-copy.`);
+  for (const [file, document] of documents) {
+    const pageCopy = pageCopies.get(file);
+    assert(Boolean(pageCopy), `No content definition for ${label(file)}.`);
+    if (!pageCopy) continue;
+    assert(document.elements.filter(element => element.name === 'h1').length === 1, `${label(file)} must have exactly one primary heading.`);
+    for (const element of document.elements) {
+      for (const [attribute, key] of Object.entries(element.attrs).filter(([name]) => ['data-i18n', 'data-i18n-alt', 'data-i18n-aria'].includes(name))) {
+        assert(languages.every(language => typeof pageCopy[language][key] === 'string'), `Unknown translation key: ${label(file)}:${key}`);
+        if (!(key in pageCopy.ko)) continue;
+        let actual;
+        if (attribute === 'data-i18n-alt') actual = element.attrs.alt;
+        else if (attribute === 'data-i18n-aria') actual = element.attrs['aria-label'];
+        else actual = decode(document.html.slice(element.end).split('</')[0]);
+        assert(actual?.replace(/\r\n/g, '\n') === pageCopy.ko[key], `Static Korean is out of sync at ${label(file)}:${key}; run npm run sync-copy.`);
+      }
     }
+    const pageTitle = decode(document.html.match(/<title>([^<]*)<\/title>/i)?.[1] ?? '');
+    assert(pageTitle === pageCopy.ko.pageTitle, `Static page title does not match Korean content in ${label(file)}.`);
+    const description = document.elements.find(element => element.name === 'meta' && element.attrs.name === 'description')?.attrs.content;
+    assert(description === pageCopy.ko.metaDescription, `Static page description does not match Korean content in ${label(file)}.`);
   }
-  const pageTitle = decode(home.html.match(/<title>([^<]*)<\/title>/i)?.[1] ?? '');
-  assert(pageTitle === copy.ko.pageTitle, 'Static page title does not match Korean content.');
-  const description = home.elements.find(element => element.name === 'meta' && element.attrs.name === 'description')?.attrs.content;
-  assert(description === copy.ko.metaDescription, 'Static page description does not match Korean content.');
   console.log(`Checked ${files.length} public files, ${htmlFiles.length} HTML document(s), and ${languages.length} languages.`);
 }
 

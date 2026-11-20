@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1b2e">
   <meta name="description" content="만드는 사람을 위한 메이커 플랫폼, 하이쓰리디. 한양3D팩토리의 제조, 한양미래연구소의 교육, 메이킷의 AI 솔루션으로 아이디어의 가능성을 연결합니다.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="HY3D — Anyone can make it.">
+  <meta property="og:title" content="HY3D 하이쓰리디 — Anyone can make it.">
   <meta property="og:description" content="만드는 사람을 위한 메이커 플랫폼, 하이쓰리디. 한양3D팩토리의 제조, 한양미래연구소의 교육, 메이킷의 AI 솔루션으로 아이디어의 가능성을 연결합니다.">
   <meta property="og:image" content="https://hy3d.kr/assets/hero.webp">
   <meta property="og:url" content="https://hy3d.kr/">
@@ -28,7 +28,17 @@
     </a>
     <nav class="main-nav" id="main-nav" aria-label="Main navigation">
       <a href="#about" data-i18n="navAbout">하이쓰리디</a>
-      <a href="#businesses" data-i18n="navBusinesses">사업 분야</a>
+      <div class="nav-businesses">
+        <div class="nav-business-heading">
+          <a href="#businesses" data-i18n="navBusinesses">사업 분야</a>
+          <button type="button" class="nav-disclosure" id="business-menu-toggle" aria-controls="business-submenu" aria-expanded="false" aria-label="사업 분야 메뉴 열기" data-i18n-aria="businessMenuOpen"><span aria-hidden="true"></span></button>
+        </div>
+        <ul class="business-submenu" id="business-submenu" hidden>
+          <li><a href="business/manufacturing/" data-business-link="manufacturing" data-i18n="navManufacturing">제조</a></li>
+          <li><a href="business/education/" data-business-link="education" data-i18n="navEducation">교육</a></li>
+          <li><a href="business/ai/" data-business-link="ai" data-i18n="navAi">AI 솔루션</a></li>
+        </ul>
+      </div>
       <a href="#contact" data-i18n="navContact">문의</a>
     </nav>
     <div class="header-actions">
@@ -88,17 +98,17 @@
         <article class="business-panel" id="panel-make" role="tabpanel" aria-labelledby="tab-make" tabindex="0">
           <div class="business-visual"><img src="assets/make.webp" width="1600" height="900" loading="lazy" alt="분말을 정밀하게 쌓아 부품을 만드는 3D프린팅 콘셉트 이미지" data-i18n-alt="makeAlt"><span class="visual-word" aria-hidden="true">Make<br>it real.</span><span class="visual-caption" lang="en">MANUFACTURING</span></div>
           <div class="business-copy"><p class="brand-name" data-i18n="makeName">한양3D팩토리</p><h3 data-i18n="makeHeadline">머릿속 아이디어를
-손에 잡히는 제품으로.</h3><p class="business-description" data-i18n="makeDescription">설계부터 시제품, 양산까지. 제품을 만드는 과정에 필요한 기술과 경험을 연결합니다. 한양3D팩토리는 아이디어가 실제 제품이 되는 길을 함께합니다.</p><ul class="business-tags"><li data-i18n="makeTag1">제품 설계</li><li data-i18n="makeTag2">3D프린팅</li><li data-i18n="makeTag3">시제품 · 양산</li></ul><a class="button button-dark" href="https://hanyang3d.kr" target="_blank" rel="noopener noreferrer" data-i18n="makeCta">한양3D팩토리 방문하기</a><span class="brand-domain">hanyang3d.kr</span></div>
+손에 잡히는 제품으로.</h3><p class="business-description" data-i18n="makeDescription">설계부터 시제품, 양산까지. 제품을 만드는 과정에 필요한 기술과 경험을 연결합니다. 한양3D팩토리는 아이디어가 실제 제품이 되는 길을 함께합니다.</p><ul class="business-tags"><li data-i18n="makeTag1">제품 설계</li><li data-i18n="makeTag2">3D프린팅</li><li data-i18n="makeTag3">시제품 · 양산</li></ul><a class="button button-dark" href="business/manufacturing/" data-i18n="makeCta">제조 사업 알아보기</a><span class="brand-domain">hanyang3d.kr</span></div>
         </article>
         <article class="business-panel" id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" tabindex="0" hidden>
           <div class="business-visual"><img src="assets/learn.webp" width="1600" height="900" loading="lazy" alt="학생들이 함께 로봇을 조립하고 AI를 배우는 교육 콘셉트 이미지" data-i18n-alt="learnAlt"><span class="visual-word" aria-hidden="true">Learn<br>by making.</span><span class="visual-caption" lang="en">EDUCATION</span></div>
           <div class="business-copy"><p class="brand-name" data-i18n="learnName">한양미래연구소</p><h3 data-i18n="learnHeadline">직접 만드는 경험이
-내일의 꿈이 되도록.</h3><p class="business-description" data-i18n="learnDescription">AI와 코딩, 메이커 체험으로 미래 기술을 만납니다. 학교로 찾아가는 체험교실부터 캠프까지, 한양미래연구소는 스스로 만들며 배우는 경험을 전합니다.</p><ul class="business-tags"><li data-i18n="learnTag1">AI · 코딩</li><li data-i18n="learnTag2">메이커 체험</li><li data-i18n="learnTag3">교육 · 캠프</li></ul><a class="button button-dark" href="https://hyedu.kr" target="_blank" rel="noopener noreferrer" data-i18n="learnCta">한양미래연구소 방문하기</a><span class="brand-domain">hyedu.kr</span></div>
+내일의 꿈이 되도록.</h3><p class="business-description" data-i18n="learnDescription">AI와 코딩, 메이커 체험으로 미래 기술을 만납니다. 학교로 찾아가는 체험교실부터 캠프까지, 한양미래연구소는 스스로 만들며 배우는 경험을 전합니다.</p><ul class="business-tags"><li data-i18n="learnTag1">AI · 코딩</li><li data-i18n="learnTag2">메이커 체험</li><li data-i18n="learnTag3">교육 · 캠프</li></ul><a class="button button-dark" href="business/education/" data-i18n="learnCta">교육 사업 알아보기</a><span class="brand-domain">hyedu.kr</span></div>
         </article>
         <article class="business-panel" id="panel-share" role="tabpanel" aria-labelledby="tab-share" tabindex="0" hidden>
           <div class="business-visual"><img src="assets/share.webp" width="1600" height="900" loading="lazy" alt="직접 만든 디저트를 스마트폰으로 소개하는 소상공인 콘셉트 이미지" data-i18n-alt="shareAlt"><span class="visual-word" aria-hidden="true">Share<br>your story.</span><span class="visual-caption" lang="en">AI SOLUTION</span></div>
           <div class="business-copy"><p class="brand-name" data-i18n="shareName">메이킷 Makit</p><h3 data-i18n="shareHeadline">잘 만드는 당신의 일이
-더 많은 사람에게.</h3><p class="business-description" data-i18n="shareDescription">사장님의 사진과 이야기가 홍보 콘텐츠가 됩니다. 메이킷은 AI로 영상과 글을 만드는 일을 도와, 자신의 일과 브랜드를 알리는 부담을 덜어줍니다.</p><ul class="business-tags"><li data-i18n="shareTag1">AI 콘텐츠</li><li data-i18n="shareTag2">숏폼 영상</li><li data-i18n="shareTag3">브랜드 홍보</li></ul><a class="button button-dark" href="https://makit.chat" target="_blank" rel="noopener noreferrer" data-i18n="shareCta">메이킷 방문하기</a><span class="brand-domain">makit.chat</span></div>
+더 많은 사람에게.</h3><p class="business-description" data-i18n="shareDescription">사장님의 사진과 이야기가 홍보 콘텐츠가 됩니다. 메이킷은 AI로 영상과 글을 만드는 일을 도와, 자신의 일과 브랜드를 알리는 부담을 덜어줍니다.</p><ul class="business-tags"><li data-i18n="shareTag1">AI 콘텐츠</li><li data-i18n="shareTag2">숏폼 영상</li><li data-i18n="shareTag3">브랜드 홍보</li></ul><a class="button button-dark" href="business/ai/" data-i18n="shareCta">AI 솔루션 알아보기</a><span class="brand-domain">makit.chat</span></div>
         </article>
       </div>
     </section>

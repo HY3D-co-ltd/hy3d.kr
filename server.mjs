@@ -8,8 +8,18 @@ const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-
 const server = http.createServer(async (req,res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-    const file = path.resolve(base, '.' + (pathname === '/' ? '/index.html' : pathname));
+    let file = path.resolve(base, '.' + pathname);
+    if (file === base) file = path.join(base, 'index.html');
     if (!file.startsWith(base + path.sep)) { res.writeHead(403);res.end('Forbidden');return; }
+    if ((await stat(file)).isDirectory()) {
+      if (!pathname.endsWith('/')) {
+        const query = new URL(req.url, 'http://localhost').search;
+        res.writeHead(301, { Location: `${pathname}/${query}` });
+        res.end();
+        return;
+      }
+      file = path.join(file, 'index.html');
+    }
     if (!(await stat(file)).isFile()) throw new Error('Not found');
     res.writeHead(200, {'Content-Type':types[path.extname(file)] || 'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});
     res.end(await readFile(file));

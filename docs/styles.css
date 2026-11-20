@@ -15,3 +15,28 @@ html[lang=en] h2{letter-spacing:-.04em;line-height:1.2}html[lang=en] .business-c
 @media(max-width:380px){.hero h1{font-size:62px}.hero{min-height:720px}.hero-content{padding-top:145px}.hero-words{font-size:9px}.scroll-cue{font-size:8px}.about h2{font-size:29px}.brand-statement{font-size:20px}.business-copy{padding-inline:24px}.business-tabs .tab-word{font-size:28px}.contact-intro h2{font-size:35px}.value-list>div,html[lang=en] .value-list>div{grid-template-columns:1fr;gap:6px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}.business-panel:hover .business-visual>img{transform:none}}
 @media print{.site-header,.hero-bottom,.business-tabs,.button,.back-top,.language-switch{display:none}.hero{height:auto;min-height:0;padding:35px;background:var(--navy);color:black}.hero-image,.hero-shade{display:none}.hero-content{padding:0}.hero h1{font-size:54px}.hero-description{color:black}.section-space{padding-top:40px;padding-bottom:40px}.business-panel[hidden]{display:grid}.business-panel{break-inside:avoid;margin-bottom:30px}.values{color:black;background:white}.values-image{display:none}.values-copy{padding:35px}.footer{color:black;background:white}.footer .brand,.footer-details dt{color:black}}
+
+/* Shared business navigation. */
+.nav-businesses{position:relative;flex-shrink:0}
+.nav-business-heading{display:flex;align-items:center;gap:2px}
+.nav-disclosure{display:flex;align-items:center;justify-content:center;width:36px;height:44px;padding:0;background:none;border:0;color:inherit}
+.nav-disclosure>span{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.nav-disclosure[aria-expanded=true]>span{transform:translateY(2px) rotate(225deg)}
+.business-submenu{position:absolute;top:calc(100% + 12px);left:-18px;min-width:196px;max-width:calc(100vw - 48px);margin:0;padding:10px;list-style:none;background:#122c43;border:1px solid #ffffff1f;border-radius:3px;box-shadow:0 12px 28px #07152333}
+.business-submenu[hidden]{display:none}
+.main-nav .business-submenu a{display:block;padding:12px 14px;font-size:15px;line-height:1.5;white-space:nowrap;border-radius:2px}
+.main-nav .business-submenu a:after{display:none}
+.main-nav .business-submenu a:hover,.main-nav .business-submenu a:focus-visible,.main-nav .business-submenu a[aria-current=page]{background:#ffffff12;color:#fff}
+.no-js .nav-disclosure{display:none}
+.no-js .nav-businesses:hover .business-submenu[hidden],.no-js .nav-businesses:focus-within .business-submenu[hidden]{display:block}
+@media(max-width:760px){
+  .main-nav{max-height:calc(100svh - 76px);overflow-y:auto}
+  .nav-business-heading{justify-content:space-between}
+  .nav-business-heading>a{flex:1}
+  .nav-disclosure{width:44px;height:52px}
+  .business-submenu{position:static;min-width:0;max-width:none;width:auto;margin:0 0 12px 8px;padding:3px 0 3px 14px;border:0;border-left:1px solid #688297;background:none;border-radius:0;box-shadow:none}
+  .main-nav .business-submenu a{padding:12px 14px;font-size:16px}
+  .no-js .main-nav{overflow:visible}
+  .no-js .business-submenu{position:absolute;left:auto;right:0;top:100%;min-width:160px;margin:0;padding:10px;background:var(--navy);border:1px solid #ffffff1f}
+  .no-js .main-nav .business-submenu a{font-size:14px;padding:10px}
+}
