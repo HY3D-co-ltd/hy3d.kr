@@ -187,7 +187,7 @@ async function validate() {
     assert(Boolean(document), `Missing business page: business/${slug}/index.html; run npm run sync-copy.`);
     if (document) assert(document.elements.find(element => element.name === 'body')?.attrs['data-business'] === slug, `Business page identity does not match ${slug}.`);
     if (!checkTranslations(business?.copy, slug)) continue;
-    for (const key of ['brand', 'image', 'website', 'email', 'phone', 'phoneHref']) {
+    for (const key of ['brand', 'image', 'logo', 'website', 'email', 'phone', 'phoneHref']) {
       const value = business.metadata?.[key];
       assert(typeof value === 'string' && value.trim().length > 0, `Missing business metadata: ${slug}.${key}`);
       if (typeof value !== 'string') continue;
@@ -203,21 +203,14 @@ async function validate() {
         assert(Number.isInteger(visual?.[dimension]) && visual[dimension] > 0, `Invalid image ${dimension} in ${location}.`);
       }
     };
-    await checkVisual({ image: business.metadata?.image, width: business.metadata?.imageWidth, height: business.metadata?.imageHeight }, `${slug}.hero`);
-    assert(['landscape', 'screens'].includes(business.metadata?.galleryLayout), `Unsupported gallery layout in ${slug}.`);
-    for (const group of ['gallery', 'workflow']) {
-      const visuals = business.metadata?.[group];
-      assert(Array.isArray(visuals), `Missing visual collection: ${slug}.${group}`);
-      if (!Array.isArray(visuals)) continue;
-      if (group === 'gallery') assert(visuals.length > 0, `At least one gallery image is required in ${slug}.`);
-      for (const [index, visual] of visuals.entries()) {
-        const location = `${slug}.${group}[${index}]`;
-        await checkVisual(visual, location);
-        for (const field of ['titleKey', 'captionKey', 'altKey']) {
-          const key = visual?.[field];
-          assert(typeof key === 'string' && languages.every(language => typeof business.copy[language][key] === 'string' && business.copy[language][key].trim()), `Missing translated ${field} in ${location}.`);
-        }
-      }
+    await checkVisual({ image: business.metadata?.logo, width: business.metadata?.logoWidth, height: business.metadata?.logoHeight }, `${slug}.logo`);
+    await checkReference(`assets/${business.metadata?.image}`, path.join(site, 'index.html'), `${slug}.socialImage`);
+    assert(/^https:\/\//.test(business.metadata?.website), `Use the official HTTPS brand website in ${slug}.`);
+    if (document) {
+      const hero = document.html.match(/<section class="detail-hero"[\s\S]*?<\/section>/)?.[0] || '';
+      assert(hero.includes(`href="${business.metadata.website}"`), `The official brand website must appear at the top of ${slug}.`);
+      assert(hero.includes(`assets/${business.metadata.logo}`), `The original brand logo must appear at the top of ${slug}.`);
+      assert(!/href="#/.test(hero), `Remove internal jump links from the brand introduction in ${slug}.`);
     }
     pageCopies.set(file, Object.fromEntries(languages.map(language => [language, { ...copy[language], ...business.copy[language] }])));
   }

@@ -41,39 +41,26 @@ function renderPage(slug) {
     if (typeof text[key] !== 'string') throw new Error(`${slug}: missing copy key ${key}`);
     return escape(text[key]);
   };
-  const { website, email, phone, phoneHref, gallery = [], workflow = [], galleryLayout = 'landscape' } = page.metadata;
-  if (!gallery.length) throw new Error(`${slug}: approved gallery images are required.`);
-  const brandKey = brandKeys[slug];
-  const brand = `${brandKey}Name`;
+  const { website, email, phone, phoneHref } = page.metadata;
   const image = imageName(page);
   const canonical = `${origin}/business/${slug}/`;
   const asset = name => `../../assets/${escape(name.replaceAll('\\', '/').replace(/^assets\//, ''))}`;
-  const mediaCard = (media, screen = false) => `
-          <figure class="detail-media-card${screen ? ' detail-screen-card' : ''}">
-            <div class="detail-media-frame"><img src="${asset(media.image)}" alt="${t(media.altKey)}" data-i18n-alt="${escape(media.altKey)}" width="${media.width}" height="${media.height}" loading="lazy" decoding="async"></div>
-            <figcaption><h3 data-i18n="${escape(media.titleKey)}">${t(media.titleKey)}</h3><p data-i18n="${escape(media.captionKey)}">${t(media.captionKey)}</p></figcaption>
-          </figure>`;
-  const capabilities = [1, 2, 3].map(index => `<li data-i18n="detailService${index}Title">${t(`detailService${index}Title`)}</li>`).join('');
-  const screenGallery = galleryLayout === 'screens';
-  const galleryMarkup = gallery.map(media => mediaCard(media, screenGallery)).join('');
-  const galleryHint = screenGallery && text.detailGalleryHint ? `<p class="detail-gallery-hint" data-i18n="detailGalleryHint">${t('detailGalleryHint')}</p>` : '';
-  const heroVisual = screenGallery
-    ? `<div class="detail-product-preview">${gallery.slice(0, 2).map((media, index) => `<div class="detail-product-screen"><img src="${asset(media.image)}" alt="${t(media.altKey)}" data-i18n-alt="${escape(media.altKey)}" width="${media.width}" height="${media.height}" ${index ? 'loading="lazy"' : 'fetchpriority="high"'}></div>`).join('')}</div>`
-    : `<div class="detail-hero-media"><img src="../../assets/${escape(image)}" alt="${t('detailHeroAlt')}" data-i18n-alt="detailHeroAlt" width="${page.metadata.imageWidth || 1600}" height="${page.metadata.imageHeight || 900}" fetchpriority="high"></div>`;
-  const workflowMarkup = workflow.length ? `
-    <section class="detail-visual-workflow section-space" aria-labelledby="process-title">
-      <div class="page-width">
-        <div class="detail-section-heading"><h2 id="process-title" data-i18n="detailProcessTitle">${t('detailProcessTitle')}</h2><p data-i18n="detailProcessIntro">${t('detailProcessIntro')}</p></div>
-        <div class="detail-workflow-grid detail-workflow-grid-${Math.min(workflow.length, 4)}">${workflow.map(media => mediaCard(media)).join('')}
-        </div>
-      </div>
-    </section>` : '';
+  const logoMarkup = (item, related = false) => {
+    const { logo, logoWidth, logoHeight } = businessPages[item].metadata;
+    if (!logo || !Number.isInteger(logoWidth) || logoWidth <= 0 || !Number.isInteger(logoHeight) || logoHeight <= 0) {
+      throw new Error(`${item}: an approved brand logo and its dimensions are required.`);
+    }
+    return `<div class="detail-logo${related ? ' detail-related-logo' : ''}" aria-hidden="true"><img src="${asset(logo)}" alt="" width="${logoWidth}" height="${logoHeight}"${related ? ' loading="lazy"' : ''}>${item === 'ai' ? '<span lang="en">Makit</span>' : ''}</div>`;
+  };
+  const principles = [1, 2, 3].map(index => `
+              <div class="detail-principle"><h3 data-i18n="detailPrinciple${index}Title">${t(`detailPrinciple${index}Title`)}</h3><p data-i18n="detailPrinciple${index}Body">${t(`detailPrinciple${index}Body`)}</p></div>`).join('');
+  const services = [1, 2, 3].map(index => `
+          <article class="detail-service"><h3 data-i18n="detailService${index}Title">${t(`detailService${index}Title`)}</h3><p data-i18n="detailService${index}Body">${t(`detailService${index}Body`)}</p></article>`).join('');
   const related = slugs.filter(item => item !== slug).map(item => {
     const key = brandKeys[item];
-    const relatedImage = businessPages[item].metadata;
     return `
           <a class="detail-related-link" href="../${item}/">
-            <img src="../../assets/${escape(imageName(businessPages[item]))}" alt="" width="${relatedImage.imageWidth || 1600}" height="${relatedImage.imageHeight || 900}" loading="lazy">
+            ${logoMarkup(item, true)}
             <div><p data-i18n="${key}Category">${t(`${key}Category`)}</p><h3 data-i18n="${key}Name">${t(`${key}Name`)}</h3></div>
           </a>`;
   }).join('');
@@ -94,7 +81,6 @@ function renderPage(slug) {
   <title>${t('pageTitle')}</title>
   <link rel="canonical" href="${canonical}">
   <link rel="icon" href="../../assets/favicon.ico" sizes="any">
-  <link rel="preload" href="../../assets/${escape(image)}" as="image" fetchpriority="high">
   <link rel="stylesheet" href="../../styles.css">
   <link rel="stylesheet" href="../../business.css">
   <script type="module" src="../../app.js"></script>
@@ -104,37 +90,52 @@ function renderPage(slug) {
   ${sharedMarkup('header', slug)}
 
   <main id="main">
-    <section class="detail-hero${screenGallery ? ' detail-hero-product' : ''}" id="home" aria-labelledby="detail-title">
-      <div class="detail-hero-content page-width">
-        <p class="eyebrow light" data-i18n="detailEyebrow">${t('detailEyebrow')}</p>
-        <h1 id="detail-title" data-i18n="detailTitle">${t('detailTitle')}</h1>
-        <p class="detail-hero-intro" data-i18n="detailIntro">${t('detailIntro')}</p>
-        <a class="button button-light" href="#services" data-i18n="detailGalleryTitle">${t('detailGalleryTitle')}</a>
-      </div>
-      ${heroVisual}
-      <div class="detail-brand-line page-width"><span data-i18n="${brand}">${t(brand)}</span><span lang="en">ANYONE CAN MAKE IT.</span></div>
-    </section>
-
-    <section class="detail-gallery section-space" id="services" aria-labelledby="gallery-title">
+    <section class="detail-hero" id="home" aria-labelledby="detail-title">
       <div class="page-width">
-        <div class="detail-section-heading"><h2 id="gallery-title" data-i18n="detailGalleryTitle">${t('detailGalleryTitle')}</h2><p data-i18n="detailGalleryIntro">${t('detailGalleryIntro')}</p></div>
-        <ul class="detail-capabilities" aria-label="${t('detailServicesTitle')}" data-i18n-aria="detailServicesTitle">${capabilities}</ul>
-        ${galleryHint}
-        <div class="${screenGallery ? 'detail-gallery-screens' : `detail-gallery-grid detail-gallery-grid-${Math.min(gallery.length, 3)}`}"${screenGallery ? ` role="region" tabindex="0" aria-label="${t('detailGalleryTitle')}" data-i18n-aria="detailGalleryTitle"` : ''}>${galleryMarkup}
+        <div class="detail-identity">
+          <div class="detail-identity-brand">
+            ${logoMarkup(slug)}
+            <p data-i18n="detailBrandLabel">${t('detailBrandLabel')}</p>
+          </div>
+          <a class="detail-official-link" href="${escape(website)}" target="_blank" rel="noopener noreferrer"><span data-i18n="detailWebsiteLabel">${t('detailWebsiteLabel')}</span><span class="detail-domain">${escape(new URL(website).hostname)}</span></a>
+        </div>
+        <div class="detail-hero-copy">
+          <h1 id="detail-title" data-i18n="detailTitle">${t('detailTitle')}</h1>
+          <div class="detail-hero-description"><p class="eyebrow" data-i18n="detailEyebrow">${t('detailEyebrow')}</p><p data-i18n="detailIntro">${t('detailIntro')}</p></div>
         </div>
       </div>
     </section>
 
-    ${workflowMarkup}
+    <section class="detail-purpose section-space" aria-labelledby="vision-title">
+      <div class="page-width">
+        <div class="detail-vision">
+          <div><p class="eyebrow light" data-i18n="detailVisionLabel">${t('detailVisionLabel')}</p><h2 id="vision-title" data-i18n="detailVisionTitle">${t('detailVisionTitle')}</h2></div>
+          <p class="detail-vision-body" data-i18n="detailVisionBody">${t('detailVisionBody')}</p>
+        </div>
+        <div class="detail-principles">
+          <div class="detail-principles-heading"><p class="eyebrow light" data-i18n="detailPrincipleLabel">${t('detailPrincipleLabel')}</p><h3 data-i18n="detailPrincipleTitle">${t('detailPrincipleTitle')}</h3></div>
+          <div class="detail-principle-grid">${principles}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail-services section-space" id="services" aria-labelledby="services-title">
+      <div class="page-width">
+        <p class="eyebrow" data-i18n="detailServiceLabel">${t('detailServiceLabel')}</p>
+        <h2 id="services-title" data-i18n="detailServiceTitle">${t('detailServiceTitle')}</h2>
+        <div class="detail-service-grid">${services}
+        </div>
+      </div>
+    </section>
 
     <section class="detail-contact section-space" id="contact" aria-labelledby="contact-title">
       <div class="page-width detail-contact-grid">
         <div><h2 id="contact-title" data-i18n="detailContactTitle">${t('detailContactTitle')}</h2><p class="detail-contact-body" data-i18n="detailContactBody">${t('detailContactBody')}</p></div>
         <div class="detail-contact-info">
-          <h3 data-i18n="${brand}">${t(brand)}</h3>
+          <h3 data-i18n="detailBrandLabel">${t('detailBrandLabel')}</h3>
           <span class="email-address">${escape(email)}</span>
           <a class="phone-link" href="${escape(phoneHref)}">${escape(phone)}</a>
-          <a class="button button-dark" href="${escape(website)}" target="_blank" rel="noopener noreferrer" data-i18n="detailWebsiteLabel">${t('detailWebsiteLabel')}</a>
         </div>
       </div>
     </section>
